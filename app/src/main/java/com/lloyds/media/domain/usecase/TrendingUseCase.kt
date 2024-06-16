@@ -11,4 +11,5 @@ import com.lloyds.media.domain.models.Work
  */
 interface TrendingUseCase {
     suspend fun getTrendingMedia(): Work<List<MediaModel>>
+    fun isPaginationCompleted(): Boolean
 }

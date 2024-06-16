@@ -1,12 +1,15 @@
 package com.lloyds.media.infra.local
 
+import com.lloyds.media.BuildConfig
+
+
 /**
  * @Author: Gokul Kalagara
  * @Date: 06/06/24
  *
  */
 object Constants {
-    const val API_KEY: String = "22012045e87f46091838788e961af343"
+    const val API_KEY: String = BuildConfig.API_KEY
     const val LANGUAGE: String = "en-US"
     const val TIME_OUT: Long = 2
     const val SOMETHING_WENT_WRONG: String = "Something went wrong"

@@ -5,8 +5,9 @@ import com.lloyds.media.domain.models.MediaModel
 import com.lloyds.media.domain.models.Work
 import com.lloyds.media.domain.usecase.TrendingUseCase
 import com.lloyds.media.infra.local.Constants
+import com.lloyds.media.ui.components.home.models.Pagination
 import com.lloyds.media.ui.components.home.models.TrendingAction
-import com.lloyds.media.ui.components.home.models.TrendingScreenUiState
+import com.lloyds.media.ui.components.home.models.UiState
 import com.lloyds.media.ui.viewmodels.models.Message
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,6 +44,7 @@ class TrendingViewModelTest {
 
     @Mock
     private lateinit var useCase: TrendingUseCase
+
     @Before
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
@@ -57,18 +59,23 @@ class TrendingViewModelTest {
     @Test
     fun testUiStateLoading() = runTest {
         viewModel.onAction(TrendingAction.retry)
-        assertEquals(TrendingScreenUiState(true), viewModel.state.value)
+        assertEquals(UiState<MutableList<MediaModel>>(true), viewModel.state.value)
     }
 
     @Test
     fun testUiStateWithData_WorkResultSuccess() = runTest {
-        val data = emptyList<MediaModel>()
+        val data = mutableListOf<MediaModel>()
         viewModel.onAction(TrendingAction.retry)
         Mockito.`when`(useCase.getTrendingMedia()).thenReturn(
             Work.result(data)
         )
         delay(2000)
-        assertEquals(TrendingScreenUiState(false, null, data), viewModel.state.value)
+        assertEquals(
+            UiState(
+                false, null, data,
+                pagination = Pagination.LOADING
+            ), viewModel.state.value
+        )
     }
 
     @Test
@@ -80,7 +87,7 @@ class TrendingViewModelTest {
         )
         delay(2000)
         assertEquals(
-            TrendingScreenUiState(false, Constants.SOMETHING_WENT_WRONG),
+            UiState<MutableList<MediaModel>>(false, Constants.SOMETHING_WENT_WRONG),
             viewModel.state.value
         )
     }
@@ -94,7 +101,7 @@ class TrendingViewModelTest {
         )
         delay(2000)
         assertEquals(
-            TrendingScreenUiState(false, Constants.SOMETHING_WENT_WRONG),
+            UiState<MutableList<MediaModel>>(false, Constants.SOMETHING_WENT_WRONG),
             viewModel.state.value
         )
     }
@@ -107,7 +114,7 @@ class TrendingViewModelTest {
         )
         delay(2000)
         assertEquals(
-            TrendingScreenUiState(false, Constants.SOMETHING_WENT_WRONG),
+            UiState<MutableList<MediaModel>>(false, Constants.SOMETHING_WENT_WRONG),
             viewModel.state.value
         )
     }

@@ -61,7 +61,7 @@ class FavouritesViewModelTest {
 
     @Test
     fun testUiStateWithData_WorkResultSuccess() = runTest {
-        val data = emptyList<MediaFavouritesEntity>()
+        val data = mutableListOf<MediaFavouritesEntity>()
         viewModel.onAction(FavouritesAction.retry)
         Mockito.`when`(useCase.getAllFavourites()).thenReturn(
             Work.result(data)

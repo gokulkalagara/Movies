@@ -17,6 +17,8 @@ import javax.inject.Inject
 class TrendingUseCaseImpl @Inject constructor(private val repository: TrendingRepository) :
     TrendingUseCase {
     private var page: Int = 1
+    private var pagination: Boolean = false
+    private val models = mutableListOf<MediaModel>()
 
     override suspend fun getTrendingMedia(): Work<List<MediaModel>> {
         val result = withContext(Dispatchers.IO) {
@@ -25,15 +27,22 @@ class TrendingUseCaseImpl @Inject constructor(private val repository: TrendingRe
         return handleResponse(result)
     }
 
+    override fun isPaginationCompleted(): Boolean {
+        return pagination
+    }
+
     private fun handleResponse(result: NetworkResult<TrendingMediaResponse?, FailedResponse, Exception>): Work<List<MediaModel>> {
         when (result) {
             is NetworkResult.Success -> {
                 val trendingMovieResponse = result.data
-                var items = listOf<MediaModel>()
                 trendingMovieResponse?.let {
-                    items = it.results
+                    models.addAll(it.results)
                 }
-                return Work.result(items)
+                page += 1
+                if (page == 20) {
+                    pagination = true
+                }
+                return Work.result(models)
             }
 
             is NetworkResult.Failed -> {

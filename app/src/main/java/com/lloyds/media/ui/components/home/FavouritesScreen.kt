@@ -2,6 +2,7 @@ package com.lloyds.media.ui.components.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -52,18 +53,33 @@ import com.lloyds.media.utils.UrlUtils
  *
  */
 @Composable
-fun FavouritesScreen(viewModel: FavouritesViewModel = hiltViewModel()) {
+fun FavouritesScreen(
+    refresh: Boolean,
+    viewModel: FavouritesViewModel = hiltViewModel(),
+    navigate: (Int, String, String) -> Unit
+) {
+
     val uiState = remember {
         mutableStateOf(FavouritesScreenUiState())
     }
+
     LaunchedEffect(viewModel) {
         viewModel.state.collect {
             uiState.value = it
         }
     }
+
+    if (refresh) {
+        viewModel.onAction(FavouritesAction.retry)
+    }
+
     FavouritesScreenContent(uiState.value) {
         when (it) {
-            FavouritesAction.retry -> {
+            is FavouritesAction.FavItemClick -> {
+                navigate(it.entity.id, it.entity.mediaType ?: "", it.entity.name)
+            }
+
+            else -> {
                 viewModel.onAction(it)
             }
         }
@@ -79,15 +95,15 @@ fun FavouritesScreenContent(uiState: FavouritesScreenUiState, action: (Favourite
             action(FavouritesAction.retry)
         })
     } else {
-        FavouritesMediaList(uiState.list)
+        FavouritesMediaList(uiState.list, action)
     }
 }
 
 @Composable
-fun FavouritesMediaList(list: List<MediaFavouritesEntity>) {
+fun FavouritesMediaList(list: List<MediaFavouritesEntity>, action: (FavouritesAction) -> Unit) {
     LazyColumn {
         items(list) {
-            FavouritesItem(it)
+            FavouritesItem(it, action)
         }
         item {
             Spacer(modifier = Modifier.height(16.dp))
@@ -96,7 +112,7 @@ fun FavouritesMediaList(list: List<MediaFavouritesEntity>) {
 }
 
 @Composable
-fun FavouritesItem(entity: MediaFavouritesEntity) {
+fun FavouritesItem(entity: MediaFavouritesEntity, action: (FavouritesAction) -> Unit) {
     Surface(
         shadowElevation = 3.dp,
         modifier = Modifier
@@ -105,7 +121,11 @@ fun FavouritesItem(entity: MediaFavouritesEntity) {
         shape = RoundedCornerShape(3.dp)
     ) {
         ConstraintLayout(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    action(FavouritesAction.FavItemClick(entity))
+                }
         ) {
 
             val (box1, text1, text2, image1) = createRefs()
@@ -125,7 +145,9 @@ fun FavouritesItem(entity: MediaFavouritesEntity) {
                     .background(
                         color = colorResource(id = R.color.light_tint_gray),
                         shape = CircleShape
-                    ).padding(1.dp).clip(CircleShape)
+                    )
+                    .padding(1.dp)
+                    .clip(CircleShape)
             )
 
             Text(text = entity.name,
@@ -160,11 +182,13 @@ fun FavouritesItem(entity: MediaFavouritesEntity) {
             Image(painter = painterResource(id = R.drawable.ic_forward),
                 contentDescription = "",
                 colorFilter = ColorFilter.tint(color = colorResource(id = R.color.light_gray)),
-                modifier = Modifier.width(24.dp).constrainAs(image1) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    end.linkTo(parent.end, margin = 16.dp)
-                })
+                modifier = Modifier
+                    .width(24.dp)
+                    .constrainAs(image1) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(parent.end, margin = 16.dp)
+                    })
         }
     }
 }

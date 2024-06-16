@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,10 +21,20 @@ android {
         versionCode = 1
         versionName = "1.0"
         multiDexEnabled = true
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        val properties = Properties()
+        val propertiesFile = file("../config.properties")
+
+        if (propertiesFile.exists()) {
+            properties.load(FileInputStream(propertiesFile))
+            val apiKey = properties.getProperty("API_KEY")
+            buildConfigField(type = "String", name = "API_KEY", apiKey)
+        } else {
+            logger.warn("config.properties file not found!")
         }
     }
 
@@ -45,6 +58,7 @@ android {
         enable = true
     }
     buildFeatures {
+        buildConfig = true
         compose = true
         viewBinding = true
     }
@@ -72,10 +86,10 @@ dependencies {
     // constraintlayout
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     //input and measurement/layout
-    implementation("androidx.compose.ui:ui:1.6.7")
+    implementation("androidx.compose.ui:ui:1.6.8")
     // preview
-    implementation("androidx.compose.ui:ui-tooling-preview:1.6.7")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.6.7")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.6.8")
     // Material Design 3
     implementation("androidx.compose.material3:material3:1.2.1")
     // Optional - Add window size utils
@@ -83,9 +97,9 @@ dependencies {
     // Optional - Integration with activities
     implementation("androidx.activity:activity-compose:1.9.0")
     // Optional - Integration with LiveData
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.7")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.8")
     // Optional - Integration with RxJava
-    implementation("androidx.compose.runtime:runtime-rxjava2:1.6.7")
+    implementation("androidx.compose.runtime:runtime-rxjava2:1.6.8")
     // navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
@@ -110,7 +124,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // live data
-    val lifecycle_version = "2.8.1"
+    val lifecycle_version = "2.8.2"
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")

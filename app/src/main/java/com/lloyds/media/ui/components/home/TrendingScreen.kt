@@ -39,8 +39,9 @@ import com.lloyds.media.domain.models.getIntroDate
 import com.lloyds.media.infra.local.Constants
 import com.lloyds.media.ui.components.ErrorUICompose
 import com.lloyds.media.ui.components.ProgressBarCompose
+import com.lloyds.media.ui.components.home.models.Pagination
 import com.lloyds.media.ui.components.home.models.TrendingAction
-import com.lloyds.media.ui.components.home.models.TrendingScreenUiState
+import com.lloyds.media.ui.components.home.models.UiState
 import com.lloyds.media.ui.viewmodels.TrendingViewModel
 import com.lloyds.media.utils.FontUtils
 import com.lloyds.media.utils.ImageDim
@@ -58,8 +59,9 @@ fun TrendingScreen(
     navigate: (Int, String, String) -> Unit
 ) {
     val uiState = remember {
-        mutableStateOf(TrendingScreenUiState())
+        mutableStateOf(UiState<MutableList<MediaModel>>(isLoading = true))
     }
+
     LaunchedEffect(viewModel) {
         viewModel.state.collect {
             uiState.value = it
@@ -80,7 +82,10 @@ fun TrendingScreen(
 }
 
 @Composable
-fun TrendingScreenContent(uiState: TrendingScreenUiState, action: (TrendingAction) -> Unit) {
+fun TrendingScreenContent(
+    uiState: UiState<MutableList<MediaModel>>,
+    action: (TrendingAction) -> Unit
+) {
     if (uiState.isLoading) {
         ProgressBarCompose()
     } else if ((uiState.error?.length ?: 0) > 0) {
@@ -88,18 +93,36 @@ fun TrendingScreenContent(uiState: TrendingScreenUiState, action: (TrendingActio
             action(TrendingAction.retry)
         })
     } else {
-        TrendingMediaList(uiState.list, action = action)
+        uiState.data?.let {
+            TrendingMediaList(it, uiState.pagination, action = action)
+        }
     }
 }
 
 @Composable
-fun TrendingMediaList(list: List<MediaModel>, action: (TrendingAction) -> Unit) {
+fun TrendingMediaList(
+    list: List<MediaModel>,
+    pagination: Pagination? = Pagination.DONE,
+    action: (TrendingAction) -> Unit
+) {
     LazyColumn {
-        items(list, key = { item -> item.id }) {
+        items(list) {
             TrendingMediaItem(it, action)
         }
         item {
             Spacer(modifier = Modifier.height(16.dp))
+        }
+        if (pagination == Pagination.LOADING) {
+            item {
+                LaunchedEffect(Unit) {
+                    action(TrendingAction.loadMore)
+                }
+                ProgressBarCompose(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+            }
         }
     }
 }

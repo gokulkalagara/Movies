@@ -31,13 +31,20 @@ class FavouritesViewModel @Inject constructor(private val favouritesUseCase: Fav
 
     private fun getAllMediaFavourites() {
         viewModelScope.launch {
-            when (val work: Work<List<MediaFavouritesEntity>> = favouritesUseCase.getAllFavourites()) {
+            when (val work: Work<List<MediaFavouritesEntity>> =
+                favouritesUseCase.getAllFavourites()) {
                 is Work.Result -> {
-                    _state.value = FavouritesScreenUiState(isLoading = false, error = null, list = work.data)
+                    val mutableList = mutableListOf<MediaFavouritesEntity>()
+                    mutableList.addAll(work.data)
+                    _state.value =
+                        FavouritesScreenUiState(isLoading = false, error = null, list = mutableList)
                 }
+
                 is Work.Backfire -> {
-                    _state.value = FavouritesScreenUiState(isLoading = false, error = work.exception.message)
+                    _state.value =
+                        FavouritesScreenUiState(isLoading = false, error = work.exception.message)
                 }
+
                 else -> {
                     _state.value = FavouritesScreenUiState(
                         isLoading = false,
@@ -54,6 +61,7 @@ class FavouritesViewModel @Inject constructor(private val favouritesUseCase: Fav
                 _state.value = FavouritesScreenUiState(true)
                 getAllMediaFavourites()
             }
+
             else -> {}
         }
     }

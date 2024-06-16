@@ -96,9 +96,9 @@ class MediaDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun actionOnFavourites(mediaDetailsModel: MediaDetailsModel, delete: Boolean) {
+    private fun actionOnFavourites(mediaDetailsModel: MediaDetailsModel, addFav: Boolean) {
         viewModelScope.launch {
-            if (delete) {
+            if (addFav) {
                 favouritesUseCase.addFavourites(mediaDetailsModel, createdAt = Date())
             } else {
                 favouritesUseCase.deleteFavourites(mediaDetailsModel.id)

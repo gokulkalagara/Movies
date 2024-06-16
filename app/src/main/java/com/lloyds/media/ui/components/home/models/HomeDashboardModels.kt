@@ -1,7 +1,6 @@
 package com.lloyds.media.ui.components.home.models
 
 import com.lloyds.media.R
-import com.lloyds.media.domain.models.MediaModel
 import com.lloyds.media.infra.database.entity.MediaFavouritesEntity
 
 /**
@@ -16,22 +15,24 @@ sealed class HomeScreen(val route: String, val drawable: Int, val title: String)
         HomeScreen("home://favourites", R.drawable.ic_favorite_24, "Favourites")
 
     data object MediaDetails : HomeScreen(
-        "home://details/{mediaId}/{mediaType}/{mediaTitle}",
+        "home://details/{mediaType}/{mediaId}?mediaTitle={mediaTitle}",
         R.drawable.ic_movie_filter_24,
         "Media Details"
     ) {
-        fun route(arg1: Int, arg2: String, arg3: String) = "home://details/$arg1/$arg2/$arg3"
+        fun route(arg1: String, arg2: Int, arg3: String) = "home://details/$arg1/$arg2?mediaTitle=$arg3"
     }
 }
 
-data class TrendingScreenUiState(
-    val isLoading: Boolean = true,
+data class UiState<T>(
+    val isLoading: Boolean = false,
     val error: String? = null,
-    val list: List<MediaModel> = emptyList()
+    val data: T? = null,
+    val pagination: Pagination? = null
 )
 
 sealed class TrendingAction {
     object retry : TrendingAction()
+    object loadMore : TrendingAction()
     data class MediaDetailsNavigate(
         val mediaId: Int,
         val mediaType: String,
@@ -42,9 +43,18 @@ sealed class TrendingAction {
 data class FavouritesScreenUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
-    val list: List<MediaFavouritesEntity> = emptyList()
+    val list: MutableList<MediaFavouritesEntity> = mutableListOf()
 )
 
 sealed class FavouritesAction {
     object retry : FavouritesAction()
+    data class FavItemClick(val entity: MediaFavouritesEntity) : FavouritesAction()
+}
+
+enum class Pagination {
+    NONE,
+    LOAD_MORE,
+    LOADING,
+    ERROR_RETRY,
+    DONE
 }

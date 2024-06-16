@@ -57,7 +57,10 @@ import com.lloyds.media.utils.UrlUtils
  *
  */
 @Composable
-fun MediaDetailsScreen(viewModel: MediaDetailsViewModel = hiltViewModel()) {
+fun MediaDetailsScreen(
+    viewModel: MediaDetailsViewModel = hiltViewModel(),
+    saveToBackStackEntry: (Int, Boolean) -> Unit
+) {
     val uiState = remember {
         mutableStateOf(MediaDetailsScreenUiState())
     }
@@ -75,6 +78,7 @@ fun MediaDetailsScreen(viewModel: MediaDetailsViewModel = hiltViewModel()) {
 
     MediaDetailsScreenContent(uiState.value, favouriteState.value) {
         if (it is MediaDetailsAction.FavAction) {
+            saveToBackStackEntry(it.mediaDetailsModel.id, !it.addFav)
             favouriteState.value = it.addFav
         }
         viewModel.onAction(it)

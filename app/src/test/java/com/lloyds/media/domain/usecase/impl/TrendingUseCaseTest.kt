@@ -27,7 +27,6 @@ import org.mockito.MockitoAnnotations
 class TrendingUseCaseTest {
     @Mock
     private lateinit var repository: TrendingRepository
-
     @InjectMocks
     private lateinit var useCaseImpl: TrendingUseCaseImpl
     private lateinit var response: TrendingMediaResponse

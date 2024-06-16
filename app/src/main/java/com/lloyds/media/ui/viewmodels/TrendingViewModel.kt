@@ -6,8 +6,9 @@ import com.lloyds.media.domain.models.MediaModel
 import com.lloyds.media.domain.models.Work
 import com.lloyds.media.domain.usecase.TrendingUseCase
 import com.lloyds.media.infra.local.Constants
+import com.lloyds.media.ui.components.home.models.Pagination
 import com.lloyds.media.ui.components.home.models.TrendingAction
-import com.lloyds.media.ui.components.home.models.TrendingScreenUiState
+import com.lloyds.media.ui.components.home.models.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,10 +25,9 @@ import javax.inject.Inject
 @HiltViewModel
 class TrendingViewModel @Inject constructor(private val trendingUseCase: TrendingUseCase) :
     ViewModel() {
-    private val _state = MutableStateFlow(TrendingScreenUiState(true))
-    val state: StateFlow<TrendingScreenUiState> = _state
+    private val _state = MutableStateFlow(UiState<MutableList<MediaModel>>(isLoading = true))
+    val state: StateFlow<UiState<MutableList<MediaModel>>> = _state
     private var trendingJob: Job? = null
-
 
     init {
         getTrendingMedia()
@@ -36,7 +36,11 @@ class TrendingViewModel @Inject constructor(private val trendingUseCase: Trendin
     fun onAction(action: TrendingAction) {
         when (action) {
             TrendingAction.retry -> {
-                _state.value = TrendingScreenUiState(true)
+                _state.value = UiState(isLoading = true)
+                getTrendingMedia()
+            }
+
+            TrendingAction.loadMore -> {
                 getTrendingMedia()
             }
 
@@ -45,29 +49,38 @@ class TrendingViewModel @Inject constructor(private val trendingUseCase: Trendin
     }
 
     private fun getTrendingMedia() {
-        if (!isAllowedToFetch()) {
+        if (isNotAllowedToFetch()) {
             return
         }
 
         trendingJob = viewModelScope.launch {
             when (val work: Work<List<MediaModel>> = trendingUseCase.getTrendingMedia()) {
                 is Work.Result -> {
-                    _state.value =
-                        TrendingScreenUiState(isLoading = false, error = null, list = work.data)
+                    val pagination =
+                        if (trendingUseCase.isPaginationCompleted()) Pagination.DONE
+                        else Pagination.LOADING
+                    val mutableList : MutableList<MediaModel> = mutableListOf()
+                    mutableList.addAll(work.data)
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = null,
+                        data = mutableList,
+                        pagination = pagination
+                    )
                 }
 
                 is Work.Stop -> {
                     _state.value =
-                        TrendingScreenUiState(isLoading = false, error = work.message.message)
+                        UiState(isLoading = false, error = work.message.message)
                 }
 
                 is Work.Backfire -> {
                     _state.value =
-                        TrendingScreenUiState(isLoading = false, error = work.exception.message)
+                        UiState(isLoading = false, error = work.exception.message)
                 }
 
                 else -> {
-                    _state.value = TrendingScreenUiState(
+                    _state.value = UiState(
                         isLoading = false,
                         error = Constants.SOMETHING_WENT_WRONG
                     )
@@ -76,8 +89,8 @@ class TrendingViewModel @Inject constructor(private val trendingUseCase: Trendin
         }
     }
 
-    private fun isAllowedToFetch(): Boolean {
-        return trendingJob?.isActive != true
+    private fun isNotAllowedToFetch(): Boolean {
+        return trendingJob?.isActive == true || trendingUseCase.isPaginationCompleted()
     }
 
 }

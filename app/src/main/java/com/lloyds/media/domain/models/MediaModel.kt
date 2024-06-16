@@ -1,6 +1,7 @@
 package com.lloyds.media.domain.models
 
 import android.os.Parcelable
+import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import java.text.SimpleDateFormat
@@ -15,6 +16,7 @@ import java.util.Locale
  *
  */
 @Parcelize
+@Immutable
 data class MediaModel(
     @SerializedName("backdrop_path")
     val backdropPath: String?,
@@ -64,6 +66,9 @@ fun MediaModel.getIntroDate(): String {
         firstAirDate ?: ""
     }
 
+    if (dateString.isEmpty()) {
+        return "Unavailable"
+    }
     val date: Date? = inputFormat.parse(dateString)
     return date?.let { outputFormat.format(it) } ?: "Unavailable"
 }

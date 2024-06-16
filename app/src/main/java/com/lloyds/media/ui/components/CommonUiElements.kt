@@ -31,8 +31,8 @@ import com.lloyds.media.utils.FontUtils
  *
  */
 @Composable
-fun ProgressBarCompose() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun ProgressBarCompose(modifier: Modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         CircularProgressIndicator(color = Color.Red)
     }
 }
@@ -41,7 +41,7 @@ fun ProgressBarCompose() {
 fun ErrorUICompose(error: String, action: String = "Retry", callBack: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -52,7 +52,7 @@ fun ErrorUICompose(error: String, action: String = "Retry", callBack: () -> Unit
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 letterSpacing = TextUnit(1F, TextUnitType.Sp),
-                fontSize = 18.sp
+                fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(25.dp))
             Box(

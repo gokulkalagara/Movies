@@ -93,27 +93,44 @@ class MainActivity : ComponentActivity() {
                 TrendingScreen { mediaId, mediaType, mediaTitle ->
                     navController.navigate(
                         HomeScreen.MediaDetails.route(
-                            mediaId,
-                            mediaType,
-                            mediaTitle
+                            mediaType, mediaId, mediaTitle
                         )
                     )
                 }
             }
             composable(HomeScreen.Favourites.route) {
                 updateTitle(HomeScreen.Favourites.title)
-                FavouritesScreen()
+
+                val status = it.savedStateHandle.get<Boolean?>("status")
+                it.savedStateHandle.remove<Boolean?>("status")
+                FavouritesScreen(refresh = status == true) { mediaId, mediaType, mediaTitle ->
+                    navController.navigate(
+                        HomeScreen.MediaDetails.route(
+                            mediaType, mediaId, mediaTitle
+                        )
+                    )
+                }
             }
             composable(
-                route = HomeScreen.MediaDetails.route,
-                arguments = listOf(
+                route = HomeScreen.MediaDetails.route, arguments = listOf(
                     navArgument("mediaId") { type = NavType.IntType },
                     navArgument("mediaType") { type = NavType.StringType },
                     navArgument("mediaTitle") { type = NavType.StringType },
                 )
             ) {
                 updateTitle(it.arguments?.getString("mediaTitle") ?: "Media Details")
-                MediaDetailsScreen()
+                MediaDetailsScreen { mediaId, status ->
+                    if (navController.previousBackStackEntry?.destination?.route == HomeScreen.Favourites.route) {
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "itemId",
+                            mediaId
+                        )
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "status",
+                            status
+                        )
+                    }
+                }
             }
         }
     }
@@ -132,24 +149,21 @@ class MainActivity : ComponentActivity() {
                         imageVector = ImageVector.vectorResource(id = screen.drawable),
                         contentDescription = screen.title
                     )
-                },
-                    label = {
-                        Text(
-                            text = screen.title,
-                            fontSize = 12.sp,
-                            fontFamily = FontUtils.robotoFamily,
-                            fontWeight = FontWeight.Normal
-                        )
-                    },
-                    selected = currentRoute == screen.route,
-                    onClick = {
-                        if (currentRoute != screen.route) {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId)
-                                launchSingleTop = true
-                            }
+                }, label = {
+                    Text(
+                        text = screen.title,
+                        fontSize = 12.sp,
+                        fontFamily = FontUtils.robotoFamily,
+                        fontWeight = FontWeight.Normal
+                    )
+                }, selected = currentRoute == screen.route, onClick = {
+                    if (currentRoute != screen.route) {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.startDestinationId)
+                            launchSingleTop = true
                         }
-                    })
+                    }
+                })
             }
 
         }
